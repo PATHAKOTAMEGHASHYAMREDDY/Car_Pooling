@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ridesAPI, bookingsAPI, authUtils } from "../../services/api";
 import BookingModal from "../../components/BookingModal";
+import ConfirmModal from "../../components/ConfirmModal";
 const UserDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("search");
@@ -26,6 +27,14 @@ const UserDashboard = () => {
     date: "",
   });
 
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'warning'
+  });
+
   // Check authentication and load user data
   useEffect(() => {
     const currentUser = authUtils.getUser();
@@ -46,13 +55,15 @@ const UserDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      // Load available rides
-      const rides = await ridesAPI.getActiveRides();
-      setAvailableRides(rides || []);
 
-      // Load user's bookings
-      const bookings = await bookingsAPI.getMyBookings();
-      setMyBookings(bookings || []);
+      // Load both data sets in parallel for better performance
+      const [ridesResponse, bookingsResponse] = await Promise.all([
+        ridesAPI.getActiveRides(),
+        bookingsAPI.getMyBookings(),
+      ]);
+
+      setAvailableRides(ridesResponse || []);
+      setMyBookings(bookingsResponse || []);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       showNotification("Error loading dashboard data", "error");
@@ -84,12 +95,15 @@ const UserDashboard = () => {
 
     try {
       const searchParams = {
-        source: searchForm.source || null,
-        destination: searchForm.destination || null,
+        source: searchForm.source?.trim() || null,
+        destination: searchForm.destination?.trim() || null,
         rideDate: searchForm.date || null,
       };
 
+      console.log("Searching with params:", searchParams);
+
       const rides = await ridesAPI.searchRides(searchParams);
+      console.log("Search results:", rides);
       setAvailableRides(rides || []);
 
       if (!rides || rides.length === 0) {
@@ -98,8 +112,18 @@ const UserDashboard = () => {
         showNotification(`Found ${rides.length} ride(s) matching your search`);
       }
     } catch (error) {
-      console.error("Search error:", error);
-      showNotification("Error searching rides. Please try again.", "error");
+      console.error("Search error details:", error);
+
+      // Fallback: try to load all active rides if search fails
+      try {
+        console.log("Search failed, loading all active rides as fallback...");
+        const allRides = await ridesAPI.getActiveRides();
+        setAvailableRides(allRides || []);
+        showNotification("Search failed, showing all available rides", "info");
+      } catch (fallbackError) {
+        console.error("Fallback error:", fallbackError);
+        showNotification(`Error searching rides: ${error.message}`, "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -154,6 +178,59 @@ const UserDashboard = () => {
     }
   };
 
+  const handleCancelBooking = (bookingId, bookingStatus) => {
+    const confirmMessage =
+      bookingStatus === "CONFIRMED"
+        ? "Are you sure you want to cancel this confirmed booking? This will free up the seats for other passengers."
+        : "Are you sure you want to cancel this booking request?";
+
+    setConfirmModal({
+      isOpen: true,
+      title: 'Cancel Booking',
+      message: confirmMessage,
+      onConfirm: () => performCancelBooking(bookingId, bookingStatus),
+      type: 'danger'
+    });
+  };
+
+  const performCancelBooking = async (bookingId, bookingStatus) => {
+    setConfirmModal({ ...confirmModal, isOpen: false });
+
+    try {
+      setLoading(true);
+      await bookingsAPI.cancelBooking(bookingId);
+
+      // Update local state - update the booking status to CANCELLED
+      setMyBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, status: "CANCELLED" }
+            : booking
+        )
+      );
+
+      // Small delay to ensure backend has processed the cancellation
+      setTimeout(async () => {
+        await loadDashboardData();
+      }, 500);
+
+      const successMessage =
+        bookingStatus === "CONFIRMED"
+          ? "Confirmed booking cancelled successfully! Seats are now available for other passengers."
+          : "Booking request cancelled successfully!";
+
+      showNotification(successMessage);
+    } catch (error) {
+      console.error("Cancel booking error:", error);
+      showNotification(
+        error.message || "Failed to cancel booking. Please try again.",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -204,7 +281,6 @@ const UserDashboard = () => {
               >
                 Car Pooling
               </Link>
-              
             </div>
             <div className="flex items-center space-x-4 animate-slideIn">
               <div className="flex items-center space-x-2">
@@ -897,9 +973,59 @@ const UserDashboard = () => {
                             <p className="text-2xl font-bold text-gray-900">
                               ₹{booking.totalPrice}
                             </p>
-                            {booking.status === "CONFIRMED" && (
-                              <button className="mt-2 text-sm text-red-600 hover:text-red-800">
-                                Cancel Booking
+                            {(booking.status === "CONFIRMED" ||
+                              booking.status === "PENDING") && (
+                              <button
+                                onClick={() =>
+                                  handleCancelBooking(
+                                    booking.id,
+                                    booking.status
+                                  )
+                                }
+                                disabled={loading}
+                                className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                              >
+                                {loading ? (
+                                  <>
+                                    <svg
+                                      className="animate-spin h-3 w-3"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                      ></circle>
+                                      <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                      ></path>
+                                    </svg>
+                                    <span>Cancelling...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg
+                                      className="w-3 h-3"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                      />
+                                    </svg>
+                                    <span>Cancel Booking</span>
+                                  </>
+                                )}
                               </button>
                             )}
                           </div>
@@ -1356,6 +1482,17 @@ const UserDashboard = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        type={confirmModal.type}
+        confirmText="Cancel Booking"
+        cancelText="Keep Booking"
+      />
     </div>
   );
 };

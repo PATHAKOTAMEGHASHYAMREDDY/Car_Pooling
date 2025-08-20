@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Notification from '../Notification';
 
 const UserSignup = () => {
   const navigate = useNavigate();
@@ -15,6 +16,14 @@ const UserSignup = () => {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [emailError, setEmailError] = useState('');
+  const [notification, setNotification] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), type === 'error' ? 7000 : 5000);
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -112,12 +121,12 @@ const UserSignup = () => {
     e.preventDefault();
     
     if (!isEmailVerified) {
-      alert('Please verify your email address first!');
+      showNotification('Please verify your email address first!', 'warning');
       return;
     }
     
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      showNotification('Passwords do not match!', 'error');
       return;
     }
 
@@ -147,16 +156,17 @@ const UserSignup = () => {
         // Redirect to user dashboard
         navigate('/user/dashboard');
       } else {
-        alert(response.message || 'Registration failed');
+        showNotification(response.message || 'Registration failed', 'error');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      alert(error.message || 'Registration failed. Please try again.');
+      showNotification(error.message || 'Registration failed. Please try again.', 'error');
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <Notification notification={notification} onClose={() => setNotification(null)} />
       <div className="max-w-md w-full">
         <div className="card p-8 animate-fadeIn">
           <div className="text-center mb-8">
@@ -275,16 +285,34 @@ const UserSignup = () => {
                   </svg>
                   Password
                 </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="form-input"
-                  placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    className="form-input pr-10"
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="animate-slideIn" style={{animationDelay: '0.4s'}}>
@@ -294,16 +322,34 @@ const UserSignup = () => {
                   </svg>
                   Confirm Password
                 </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  className="form-input"
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    className="form-input pr-10"
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <svg className="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 

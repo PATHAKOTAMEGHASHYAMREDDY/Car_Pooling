@@ -78,9 +78,20 @@ export const ridesAPI = {
 
   searchRides: async (searchParams) => {
     const queryParams = new URLSearchParams();
-    if (searchParams.source) queryParams.append('source', searchParams.source);
-    if (searchParams.destination) queryParams.append('destination', searchParams.destination);
-    if (searchParams.rideDate) queryParams.append('rideDate', searchParams.rideDate);
+    
+    // Only add parameters if they have actual values (not null, undefined, or empty string)
+    if (searchParams.source && searchParams.source.trim()) {
+      queryParams.append('source', searchParams.source.trim());
+    }
+    if (searchParams.destination && searchParams.destination.trim()) {
+      queryParams.append('destination', searchParams.destination.trim());
+    }
+    if (searchParams.rideDate) {
+      queryParams.append('rideDate', searchParams.rideDate);
+    }
+
+    console.log('Search URL:', `${API_BASE_URL}/rides/search?${queryParams}`);
+    console.log('Search params:', searchParams);
 
     const response = await fetch(`${API_BASE_URL}/rides/search?${queryParams}`, {
       method: 'GET',
