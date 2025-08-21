@@ -39,7 +39,7 @@ const CarOwnerLogin = () => {
       if (response.token) {
         // Verify user is a car owner
         if (response.role !== 'CAR_OWNER') {
-          showNotification('Please use the passenger login for your account type.', 'warning');
+          showNotification('Please use the Car Owner login for your account type.', 'warning');
           return;
         }
 
