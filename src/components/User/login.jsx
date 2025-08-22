@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Lottie from 'lottie-react';
 import Notification from '../Notification';
+import carBookingAnimation from '../../assets/carBooking.json';
 
 const UserLogin = () => {
   const navigate = useNavigate();
@@ -66,7 +68,21 @@ const UserLogin = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <Notification notification={notification} onClose={() => setNotification(null)} />
-      <div className="max-w-md w-full">
+      <div className="flex items-center justify-center w-full max-w-6xl mx-auto gap-6">
+        {/* Left side - Lottie Animation */}
+        <div className="hidden lg:flex lg:w-1/2 items-center justify-start pl-4">
+          <div className="w-[450px] h-[450px] xl:w-[500px] xl:h-[500px]">
+            <Lottie 
+              animationData={carBookingAnimation} 
+              loop={true} 
+              autoplay={true}
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>
+        
+        {/* Right side - Login Form */}
+        <div className="w-full lg:w-1/2 max-w-md mx-auto lg:max-w-lg lg:mx-0">
         <div className="card p-8 animate-fadeIn">
           <div className="text-center mb-8">
             <Link to="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -187,6 +203,7 @@ const UserLogin = () => {
               </p>
             </div>
           </form>
+        </div>
         </div>
       </div>
     </div>
