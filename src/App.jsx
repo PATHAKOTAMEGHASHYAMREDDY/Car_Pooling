@@ -5,8 +5,10 @@ import CarOwnerLogin from './components/CarOwner/login';
 import CarOwnerSignup from './components/CarOwner/signup';
 import UserLogin from './components/User/login';
 import UserSignup from './components/User/signup';
+import AdminLogin from './components/Admin/AdminLogin';
 import CarOwnerDashboard from './pages/DashBoards/CarOwnerDashboard';
 import UserDashboard from './pages/DashBoards/UserDashboard';
+import AdminDashboard from './pages/DashBoards/AdminDashboard';
 
 function App() {
   return (
@@ -18,8 +20,10 @@ function App() {
           <Route path="/car-owner/signup" element={<CarOwnerSignup />} />
           <Route path="/user/login" element={<UserLogin />} />
           <Route path="/user/signup" element={<UserSignup />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/car-owner/dashboard" element={<CarOwnerDashboard />} />
           <Route path="/user/dashboard" element={<UserDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>
