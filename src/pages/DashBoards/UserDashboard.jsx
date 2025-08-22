@@ -35,6 +35,14 @@ const UserDashboard = () => {
     type: 'warning'
   });
 
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: ''
+  });
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
   // Check authentication and load user data
   useEffect(() => {
     const currentUser = authUtils.getUser();
@@ -49,6 +57,12 @@ const UserDashboard = () => {
     }
 
     setUser(currentUser);
+    setProfileForm({
+      name: currentUser.name || '',
+      email: currentUser.email || '',
+      phone: currentUser.phone || '',
+      address: currentUser.address || ''
+    });
     loadDashboardData();
   }, [navigate]);
 
@@ -78,8 +92,50 @@ const UserDashboard = () => {
   };
 
   const handleLogout = () => {
-    authUtils.logout();
-    navigate("/");
+    setConfirmModal({
+      isOpen: true,
+      title: 'Confirm Logout',
+      message: 'Are you sure you want to logout?',
+      onConfirm: () => {
+        authUtils.logout();
+        navigate("/");
+        setConfirmModal({ ...confirmModal, isOpen: false });
+      },
+      type: 'warning'
+    });
+  };
+
+  const handleProfileClick = () => {
+    setActiveTab("profile");
+    setIsEditingProfile(false);
+  };
+
+  const handleProfileFormChange = (e) => {
+    setProfileForm({
+      ...profileForm,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      // Here you would typically make an API call to update user profile
+      // For now, we'll update localStorage
+      const updatedUser = {
+        ...user,
+        name: profileForm.name,
+        email: profileForm.email,
+        phone: profileForm.phone,
+        address: profileForm.address
+      };
+      
+      localStorage.setItem('userData', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setIsEditingProfile(false);
+      showNotification('Profile updated successfully!');
+    } catch (error) {
+      showNotification('Failed to update profile', 'error');
+    }
   };
 
   const handleSearchChange = (e) => {
@@ -284,17 +340,22 @@ const UserDashboard = () => {
             </div>
             <div className="flex items-center space-x-4 animate-slideIn">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">
-                    {user?.name
-                      ?.split(" ")
-                      .map((n) => n[0])
-                      .join("") || "U"}
+                <button
+                  onClick={handleProfileClick}
+                  className="flex items-center space-x-2 hover:bg-gray-100 rounded-lg p-2 transition-colors duration-200"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-semibold">
+                      {user?.name
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("") || "U"}
+                    </span>
+                  </div>
+                  <span className="text-gray-700 font-medium">
+                    Welcome, {user?.name || "User"}
                   </span>
-                </div>
-                <span className="text-gray-700 font-medium">
-                  Welcome, {user?.name || "User"}
-                </span>
+                </button>
               </div>
               <button
                 onClick={handleLogout}
@@ -331,6 +392,16 @@ const UserDashboard = () => {
                 }`}
               >
                 My Bookings ({myBookings.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("profile")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "profile"
+                    ? "border-indigo-500 text-indigo-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Profile
               </button>
             </nav>
           </div>
@@ -1034,6 +1105,257 @@ const UserDashboard = () => {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+            {activeTab === "profile" && (
+              <div>
+                <div className="max-w-2xl mx-auto">
+                  <div className="text-center mb-8">
+                    <div className="w-24 h-24 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-white font-bold text-2xl">
+                        {user?.name
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .join("") || "U"}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      {isEditingProfile ? 'Edit Profile' : 'User Profile'}
+                    </h3>
+                    <p className="text-gray-600">
+                      {isEditingProfile ? 'Update your information' : 'Manage your account details'}
+                    </p>
+                  </div>
+
+                  {/* Profile Information */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <svg
+                          className="w-4 h-4 inline mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                        Full Name
+                      </label>
+                      {isEditingProfile ? (
+                        <input
+                          type="text"
+                          name="name"
+                          value={profileForm.name}
+                          onChange={handleProfileFormChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                          placeholder="Enter your full name"
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-medium bg-gray-50 px-4 py-3 rounded-lg">
+                          {user?.name || 'Not provided'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <svg
+                          className="w-4 h-4 inline mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                          />
+                        </svg>
+                        Email Address
+                      </label>
+                      {isEditingProfile ? (
+                        <input
+                          type="email"
+                          name="email"
+                          value={profileForm.email}
+                          onChange={handleProfileFormChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                          placeholder="Enter your email address"
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-medium bg-gray-50 px-4 py-3 rounded-lg">
+                          {user?.email || 'Not provided'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <svg
+                          className="w-4 h-4 inline mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                          />
+                        </svg>
+                        Phone Number
+                      </label>
+                      {isEditingProfile ? (
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={profileForm.phone}
+                          onChange={handleProfileFormChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                          placeholder="Enter your phone number"
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-medium bg-gray-50 px-4 py-3 rounded-lg">
+                          {user?.phone || 'Not provided'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <svg
+                          className="w-4 h-4 inline mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                          />
+                        </svg>
+                        Address
+                      </label>
+                      {isEditingProfile ? (
+                        <textarea
+                          name="address"
+                          value={profileForm.address}
+                          onChange={handleProfileFormChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
+                          rows="3"
+                          placeholder="Enter your address"
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-medium bg-gray-50 px-4 py-3 rounded-lg">
+                          {user?.address || 'Not provided'}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* User Role */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <svg
+                          className="w-4 h-4 inline mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                          />
+                        </svg>
+                        Account Type
+                      </label>
+                      <p className="text-gray-900 font-medium bg-gray-50 px-4 py-3 rounded-lg">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {user?.role || 'PASSENGER'}
+                        </span>
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-3 pt-4 border-t border-gray-200">
+                      {isEditingProfile ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              setIsEditingProfile(false);
+                              setProfileForm({
+                                name: user?.name || '',
+                                email: user?.email || '',
+                                phone: user?.phone || '',
+                                address: user?.address || ''
+                              });
+                            }}
+                            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleSaveProfile}
+                            className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                          >
+                            Save Changes
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setIsEditingProfile(true)}
+                            className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            <span>Edit Profile</span>
+                          </button>
+                          <button
+                            onClick={handleLogout}
+                            className="flex-1 px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                              />
+                            </svg>
+                            <span>Logout</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
