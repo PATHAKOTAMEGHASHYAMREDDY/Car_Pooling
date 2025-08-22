@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Lottie from "lottie-react";
 import carAdminAnimation from "../../assets/CarAdmin.json";
 
@@ -82,9 +82,12 @@ const AdminLogin = () => {
           <div className="w-full lg:w-1/2 max-w-md space-y-8">
             <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/20">
               <div className="text-center">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <Link
+                  to="/"
+                  className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200 inline-block"
+                >
                   Admin Login
-                </h2>
+                </Link>
                 <p className="mt-2 text-gray-600">
                   Access the administrative dashboard
                 </p>

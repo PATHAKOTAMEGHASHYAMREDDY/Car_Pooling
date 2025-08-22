@@ -30,7 +30,7 @@ const Landing = () => {
 
       {/* Hero Section with Left-Right Layout */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center max-w-6xl mx-auto">
           {/* Left Side - Text Content */}
           <div className="space-y-8">
             <div className="animate-fadeIn">
@@ -141,58 +141,56 @@ const Landing = () => {
 
           {/* Right Side - Carpool Animation */}
           <div
-            className="flex justify-center items-center animate-fadeIn"
+            className="flex justify-center items-center animate-fadeIn pl-4"
             style={{ animationDelay: "0.4s" }}
           >
-            <div className="w-full max-w-lg">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20 hover:shadow-2xl transition-all duration-300">
-                {!animationError ? (
-                  <Lottie
-                    animationData={carpoolAnimation}
-                    loop={true}
-                    autoplay={true}
-                    style={{ width: "100%", height: "400px" }}
-                    className="drop-shadow-lg"
-                    onError={handleAnimationError}
-                  />
-                ) : (
-                  // Fallback content if animation fails to load
-                  <div className="w-full h-96 flex flex-col items-center justify-center text-center space-y-4">
-                    <div className="w-24 h-24 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center animate-pulse-custom">
-                      <svg
-                        className="w-12 h-12 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900">
-                      Carpool Animation
-                    </h3>
-                    <p className="text-gray-600">
-                      Interactive carpool animation
-                    </p>
-                    <div className="flex space-x-2">
-                      <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-3 h-3 bg-pink-500 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                    </div>
+            <div className="w-full max-w-lg lg:max-w-xl">
+              {!animationError ? (
+                <Lottie
+                  animationData={carpoolAnimation}
+                  loop={true}
+                  autoplay={true}
+                  style={{ width: "100%", height: "450px" }}
+                  className="drop-shadow-lg"
+                  onError={handleAnimationError}
+                />
+              ) : (
+                // Fallback content if animation fails to load
+                <div className="w-full h-96 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-24 h-24 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center animate-pulse-custom">
+                    <svg
+                      className="w-12 h-12 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                      />
+                    </svg>
                   </div>
-                )}
-              </div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Carpool Animation
+                  </h3>
+                  <p className="text-gray-600">
+                    Interactive carpool animation
+                  </p>
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce"></div>
+                    <div
+                      className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    ></div>
+                    <div
+                      className="w-3 h-3 bg-pink-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
