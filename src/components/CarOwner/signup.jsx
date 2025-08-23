@@ -11,6 +11,7 @@ const CarOwnerSignup = () => {
     name: '',
     email: '',
     phone: '',
+    gender: '',
     password: '',
     confirmPassword: ''
   });
@@ -139,6 +140,7 @@ const CarOwnerSignup = () => {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
+        gender: formData.gender,
         password: formData.password,
         role: 'CAR_OWNER'
       };
@@ -152,6 +154,8 @@ const CarOwnerSignup = () => {
           id: response.userId,
           name: response.name,
           email: response.email,
+          phone: response.phone,
+          gender: response.gender,
           role: response.role
         });
         
@@ -294,6 +298,28 @@ const CarOwnerSignup = () => {
                 />
               </div>
 
+              <div className="animate-slideIn" style={{animationDelay: '0.25s'}}>
+                <label htmlFor="gender" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  name="gender"
+                  required
+                  className="form-input"
+                  value={formData.gender}
+                  onChange={handleChange}
+                >
+                  <option value="">Select your gender</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
               <div className="animate-slideIn" style={{animationDelay: '0.3s'}}>
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                   <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,7 +357,7 @@ const CarOwnerSignup = () => {
                 </div>
               </div>
 
-              <div className="animate-slideIn" style={{animationDelay: '0.4s'}}>
+              <div className="animate-slideIn" style={{animationDelay: '0.35s'}}>
                 <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
                   <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -369,7 +395,7 @@ const CarOwnerSignup = () => {
               </div>
             </div>
 
-            <div className="animate-slideIn" style={{animationDelay: '0.5s'}}>
+            <div className="animate-slideIn" style={{animationDelay: '0.4s'}}>
               <button
                 type="submit"
                 className="btn-primary w-full flex items-center justify-center"
@@ -381,7 +407,7 @@ const CarOwnerSignup = () => {
               </button>
             </div>
 
-            <div className="text-center animate-slideIn" style={{animationDelay: '0.6s'}}>
+            <div className="text-center animate-slideIn" style={{animationDelay: '0.45s'}}>
               <p className="text-sm text-gray-600">
                 Already have an account?{' '}
                 <Link to="/car-owner/login" className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors duration-200">

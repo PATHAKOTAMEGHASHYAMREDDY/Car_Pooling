@@ -51,6 +51,8 @@ const UserLogin = () => {
           id: response.userId,
           name: response.name,
           email: response.email,
+          phone: response.phone,
+          gender: response.gender,
           role: response.role
         });
         

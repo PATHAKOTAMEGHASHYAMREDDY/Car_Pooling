@@ -42,7 +42,7 @@ const UserDashboard = () => {
     name: '',
     email: '',
     phone: '',
-    address: ''
+    gender: ''
   });
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
@@ -65,7 +65,7 @@ const UserDashboard = () => {
         name: currentUser.name || '',
         email: currentUser.email || '',
         phone: currentUser.phone || '',
-        address: currentUser.address || ''
+        gender: currentUser.gender || ''
       });
       await loadDashboardData();
       setInitialLoading(false);
@@ -127,22 +127,58 @@ const UserDashboard = () => {
 
   const handleSaveProfile = async () => {
     try {
-      // Here you would typically make an API call to update user profile
-      // For now, we'll update localStorage
-      const updatedUser = {
-        ...user,
+      setLoading(true);
+      
+      // Prepare update data
+      const updateData = {
         name: profileForm.name,
         email: profileForm.email,
         phone: profileForm.phone,
-        address: profileForm.address
+        gender: profileForm.gender,
+      };
+
+      // Call API to update profile
+      const response = await fetch("http://localhost:8081/api/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authUtils.getToken()}`,
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Failed to update profile";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonError) {
+          // If response is not JSON, use the status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const updatedUser = await response.json();
+
+      // Update local storage with new user data
+      const newUserData = {
+        ...user,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        gender: updatedUser.gender,
       };
       
-      localStorage.setItem('userData', JSON.stringify(updatedUser));
-      setUser(updatedUser);
+      authUtils.setUser(newUserData);
+      setUser(newUserData);
       setIsEditingProfile(false);
       showNotification('Profile updated successfully!');
     } catch (error) {
-      showNotification('Failed to update profile', 'error');
+      console.error("Profile update error:", error);
+      showNotification(error.message || 'Failed to update profile', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1226,26 +1262,34 @@ const UserDashboard = () => {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                           />
                         </svg>
-                        Address
+                        Gender
                       </label>
                       {isEditingProfile ? (
-                        <textarea
-                          name="address"
-                          value={profileForm.address}
+                        <select
+                          name="gender"
+                          value={profileForm.gender}
                           onChange={handleProfileFormChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
-                          rows="3"
-                          placeholder="Enter your address"
-                        />
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        >
+                          <option value="">Select your gender</option>
+                          <option value="MALE">Male</option>
+                          <option value="FEMALE">Female</option>
+                          <option value="OTHER">Other</option>
+                        </select>
                       ) : (
                         <p className="text-gray-900 font-medium bg-gray-50 px-4 py-3 rounded-lg">
-                          {user?.address || 'Not provided'}
+                          {user?.gender ? (
+                            user.gender === 'MALE' ? 'Male' : 
+                            user.gender === 'FEMALE' ? 'Female' : 'Other'
+                          ) : 'Not provided'}
                         </p>
                       )}
                     </div>
+
+
 
                     {/* User Role */}
                     <div>
@@ -1283,7 +1327,7 @@ const UserDashboard = () => {
                                 name: user?.name || '',
                                 email: user?.email || '',
                                 phone: user?.phone || '',
-                                address: user?.address || ''
+                                gender: user?.gender || ''
                               });
                             }}
                             className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"

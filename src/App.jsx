@@ -1,14 +1,14 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Landing from './pages/landing';
-import CarOwnerLogin from './components/CarOwner/login';
-import CarOwnerSignup from './components/CarOwner/signup';
-import UserLogin from './components/User/login';
-import UserSignup from './components/User/signup';
-import AdminLogin from './components/Admin/AdminLogin';
-import CarOwnerDashboard from './pages/DashBoards/CarOwnerDashboard';
-import UserDashboard from './pages/DashBoards/UserDashboard';
-import AdminDashboard from './pages/DashBoards/AdminDashboard';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Landing from "./pages/landing";
+import CarOwnerLogin from "./components/CarOwner/login";
+import CarOwnerSignup from "./components/CarOwner/signup";
+import UserLogin from "./components/User/login";
+import UserSignup from "./components/User/signup";
+import AdminLogin from "./components/Admin/AdminLogin";
+import CarOwnerDashboard from "./pages/DashBoards/CarOwnerDashboard";
+import UserDashboard from "./pages/DashBoards/UserDashboard";
+import AdminDashboard from "./pages/DashBoards/AdminDashboard";
 
 function App() {
   return (

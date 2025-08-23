@@ -236,6 +236,10 @@ export const authUtils = {
     localStorage.setItem('token', token);
   },
 
+  getToken: () => {
+    return localStorage.getItem('token');
+  },
+
   removeToken: () => {
     localStorage.removeItem('token');
   },
