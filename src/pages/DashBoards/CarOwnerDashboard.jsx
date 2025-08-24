@@ -26,6 +26,7 @@ const CarOwnerDashboard = () => {
   const [pendingBookings, setPendingBookings] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showCompletedRides, setShowCompletedRides] = useState(true);
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -306,6 +307,80 @@ const CarOwnerDashboard = () => {
       hour12: true,
     });
   };
+
+  // Check if ride date and time have passed
+  const isRideExpired = (rideDate, rideTime) => {
+    if (!rideDate || !rideTime) return false;
+    
+    const now = new Date();
+    let rideDateTime;
+    
+    // Handle different date formats
+    if (typeof rideDate === 'string') {
+      // If it's in DD/MM format, assume current year
+      if (rideDate.match(/^\d{1,2}\/\d{1,2}$/)) {
+        const [day, month] = rideDate.split('/');
+        rideDateTime = new Date(now.getFullYear(), parseInt(month) - 1, parseInt(day));
+      } else {
+        rideDateTime = new Date(rideDate);
+      }
+    } else {
+      rideDateTime = new Date(rideDate);
+    }
+    
+    // Add the time to the date
+    if (rideTime) {
+      const [hours, minutes] = rideTime.split(':');
+      rideDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    
+    return rideDateTime < now;
+  };
+
+  // Get the display status for a ride
+  const getRideDisplayStatus = (ride) => {
+    if (ride.status === "CANCELLED") return "CANCELLED";
+    if (isRideExpired(ride.rideDate, ride.rideTime)) return "COMPLETED";
+    if (ride.status === "FULL") return "FULL";
+    return "ACTIVE";
+  };
+
+  // Get time until ride or time since completion
+  const getRideTimeStatus = (rideDate, rideTime) => {
+    if (!rideDate || !rideTime) return "";
+    
+    const now = new Date();
+    let rideDateTime = new Date(rideDate);
+    const [hours, minutes] = rideTime.split(':');
+    rideDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const diffMs = rideDateTime - now;
+    const diffHours = Math.abs(diffMs) / (1000 * 60 * 60);
+    
+    if (diffMs > 0) {
+      // Future ride
+      if (diffHours < 1) {
+        const diffMinutes = Math.floor(Math.abs(diffMs) / (1000 * 60));
+        return `Starts in ${diffMinutes} minutes`;
+      } else if (diffHours < 24) {
+        return `Starts in ${Math.floor(diffHours)} hours`;
+      } else {
+        const diffDays = Math.floor(diffHours / 24);
+        return `Starts in ${diffDays} day${diffDays > 1 ? 's' : ''}`;
+      }
+    } else {
+      // Past ride
+      if (diffHours < 1) {
+        const diffMinutes = Math.floor(diffHours * 60);
+        return `Completed ${diffMinutes} minutes ago`;
+      } else if (diffHours < 24) {
+        return `Completed ${Math.floor(diffHours)} hours ago`;
+      } else {
+        const diffDays = Math.floor(diffHours / 24);
+        return `Completed ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      }
+    }
+  };
   return (
     <>
       {/* Dashboard Loader */}
@@ -497,23 +572,58 @@ const CarOwnerDashboard = () => {
             <div className="p-6">
               {activeTab === "rides" && (
                 <div>
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                      <svg
-                        className="w-6 h-6 text-indigo-600 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                        />
-                      </svg>
-                      My Posted Rides ({postedRides.length})
-                    </h3>
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex flex-col">
+                      <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                        <svg
+                          className="w-6 h-6 text-indigo-600 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                          />
+                        </svg>
+                        My Posted Rides ({showCompletedRides ? postedRides.length : postedRides.filter(ride => getRideDisplayStatus(ride) !== "COMPLETED").length})
+                      </h3>
+                      {postedRides.length > 0 && (
+                        <div className="flex items-center space-x-4 mt-2 text-sm">
+                          <span className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-gray-600">
+                              Active: {postedRides.filter(ride => getRideDisplayStatus(ride) === "ACTIVE").length}
+                            </span>
+                          </span>
+                          <span className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span className="text-gray-600">
+                              Completed: {postedRides.filter(ride => getRideDisplayStatus(ride) === "COMPLETED").length}
+                            </span>
+                          </span>
+                          <span className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <span className="text-gray-600">
+                              Cancelled: {postedRides.filter(ride => getRideDisplayStatus(ride) === "CANCELLED").length}
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-2 mt-3">
+                        <label className="flex items-center space-x-2 text-sm text-gray-600">
+                          <input
+                            type="checkbox"
+                            checked={showCompletedRides}
+                            onChange={(e) => setShowCompletedRides(e.target.checked)}
+                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span>Show completed rides</span>
+                        </label>
+                      </div>
+                    </div>
                     <button
                       onClick={() => setShowRideForm(true)}
                       disabled={!userVehicle}
@@ -735,7 +845,7 @@ const CarOwnerDashboard = () => {
                     <div className="flex justify-center items-center py-12">
                       <CarLoader size={120} text="Loading your rides..." />
                     </div>
-                  ) : postedRides.length === 0 ? (
+                  ) : postedRides.filter(ride => showCompletedRides || getRideDisplayStatus(ride) !== "COMPLETED").length === 0 ? (
                     <div className="text-center py-12">
                       <svg
                         className="mx-auto h-12 w-12 text-gray-400"
@@ -751,38 +861,78 @@ const CarOwnerDashboard = () => {
                         />
                       </svg>
                       <h3 className="mt-2 text-sm font-medium text-gray-900">
-                        No rides posted
+                        {postedRides.length === 0 ? "No rides posted" : "No active rides"}
                       </h3>
                       <p className="mt-1 text-sm text-gray-500">
-                        Get started by posting your first ride.
+                        {postedRides.length === 0 
+                          ? "Get started by posting your first ride."
+                          : "All your rides have been completed. Check 'Show completed rides' to view them or post a new ride."
+                        }
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {postedRides.map((ride, index) => (
+                      {postedRides
+                        .filter(ride => showCompletedRides || getRideDisplayStatus(ride) !== "COMPLETED")
+                        .map((ride, index) => (
                         <div
                           key={ride.id}
-                          className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-200"
+                          className={`bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-200 ${
+                            isRideExpired(ride.rideDate, ride.rideTime) 
+                              ? "border-blue-200 bg-blue-50" 
+                              : ride.status === "CANCELLED"
+                              ? "border-red-200 bg-red-50"
+                              : "border-gray-200"
+                          }`}
                           style={{ animationDelay: `${index * 0.1}s` }}
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center space-x-4 mb-3">
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    ride.status === "ACTIVE"
-                                      ? "bg-green-100 text-green-800"
-                                      : ride.status === "CANCELLED"
-                                      ? "bg-red-100 text-red-800"
-                                      : ride.status === "COMPLETED"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                  }`}
-                                >
-                                  {ride.status}
-                                </span>
+                                {(() => {
+                                  const displayStatus = getRideDisplayStatus(ride);
+                                  return (
+                                    <span
+                                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        displayStatus === "ACTIVE"
+                                          ? "bg-green-100 text-green-800"
+                                          : displayStatus === "CANCELLED"
+                                          ? "bg-red-100 text-red-800"
+                                          : displayStatus === "COMPLETED"
+                                          ? "bg-blue-100 text-blue-800"
+                                          : displayStatus === "FULL"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {displayStatus === "COMPLETED" && (
+                                        <svg
+                                          className="w-3 h-3 mr-1"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                          />
+                                        </svg>
+                                      )}
+                                      {displayStatus}
+                                    </span>
+                                  );
+                                })()}
                                 <span className="text-sm text-gray-500">
                                   Ride #{ride.id}
+                                </span>
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  isRideExpired(ride.rideDate, ride.rideTime)
+                                    ? "text-blue-600 bg-blue-50"
+                                    : "text-green-600 bg-green-50"
+                                }`}>
+                                  {getRideTimeStatus(ride.rideDate, ride.rideTime)}
                                 </span>
                               </div>
 
@@ -853,14 +1003,39 @@ const CarOwnerDashboard = () => {
                             </div>
 
                             <div className="ml-6 flex space-x-2">
-                              {ride.status === "ACTIVE" && (
-                                <button
-                                  onClick={() => handleCancelRide(ride.id)}
-                                  className="px-4 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                                >
-                                  Cancel
-                                </button>
-                              )}
+                              {(() => {
+                                const displayStatus = getRideDisplayStatus(ride);
+                                if (displayStatus === "ACTIVE") {
+                                  return (
+                                    <button
+                                      onClick={() => handleCancelRide(ride.id)}
+                                      className="px-4 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                                    >
+                                      Cancel
+                                    </button>
+                                  );
+                                } else if (displayStatus === "COMPLETED") {
+                                  return (
+                                    <div className="px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg flex items-center space-x-1">
+                                      <svg
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                      </svg>
+                                      <span>Completed</span>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           </div>
                         </div>

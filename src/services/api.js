@@ -108,6 +108,14 @@ export const ridesAPI = {
     return handleResponse(response);
   },
 
+  getAllRides: async () => {
+    const response = await fetch(`${API_BASE_URL}/rides/all`, {
+      method: 'GET',
+      headers: createHeaders(true),
+    });
+    return handleResponse(response);
+  },
+
   getRideById: async (rideId) => {
     const response = await fetch(`${API_BASE_URL}/rides/${rideId}`, {
       method: 'GET',

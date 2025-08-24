@@ -10,6 +10,37 @@ const BookingModal = ({
 }) => {
   if (!showBookingModal || !selectedRide) return null;
 
+  // Check if ride date and time have passed
+  const isRideExpired = (rideDate, rideTime) => {
+    if (!rideDate || !rideTime) return false;
+    
+    const now = new Date();
+    let rideDateTime;
+    
+    // Handle different date formats
+    if (typeof rideDate === 'string') {
+      // If it's in DD/MM format, assume current year
+      if (rideDate.match(/^\d{1,2}\/\d{1,2}$/)) {
+        const [day, month] = rideDate.split('/');
+        rideDateTime = new Date(now.getFullYear(), parseInt(month) - 1, parseInt(day));
+      } else {
+        rideDateTime = new Date(rideDate);
+      }
+    } else {
+      rideDateTime = new Date(rideDate);
+    }
+    
+    // Add the time to the date
+    if (rideTime) {
+      const [hours, minutes] = rideTime.split(':');
+      rideDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    
+    return rideDateTime < now;
+  };
+
+  const rideExpired = isRideExpired(selectedRide.rideDate, selectedRide.rideTime);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto max-h-[95vh] overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
@@ -57,6 +88,38 @@ const BookingModal = ({
 
         {/* Modal Content */}
         <div className="p-6 max-h-[calc(95vh-80px)] overflow-y-auto">
+          {/* Expired Ride Warning */}
+          {rideExpired && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="w-6 h-6 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-red-800">
+                    Ride Completed
+                  </h4>
+                  <p className="text-red-700 text-sm">
+                    This ride has already been completed on {selectedRide.rideDate}. 
+                    You cannot book rides that have already passed.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Ride Details Card */}
           <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border border-blue-100 shadow-sm">
             <div className="flex items-start justify-between mb-3">
@@ -208,7 +271,8 @@ const BookingModal = ({
           </div>
 
           {/* Booking Form */}
-          <div className="space-y-5">
+          {!rideExpired ? (
+            <div className="space-y-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Number of Seats
@@ -316,6 +380,32 @@ const BookingModal = ({
               />
             </div>
           </div>
+          ) : (
+            <div className="text-center py-8">
+              <svg
+                className="mx-auto h-16 w-16 text-red-400 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Cannot Book This Ride
+              </h3>
+              <p className="text-gray-600 mb-4">
+                This ride was scheduled for {selectedRide.rideDate} and has already been completed.
+              </p>
+              <p className="text-sm text-gray-500">
+                Please search for upcoming rides instead.
+              </p>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex space-x-3 mt-8 pt-4 border-t border-gray-100">
@@ -323,25 +413,27 @@ const BookingModal = ({
               onClick={() => setShowBookingModal(false)}
               className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-200"
             >
-              Cancel
+              {rideExpired ? "Close" : "Cancel"}
             </button>
-            <button
-              onClick={submitBooking}
-              disabled={
-                !bookingForm.passengerName ||
-                !bookingForm.passengerPhone ||
-                (selectedRide.availableSeatsRemaining ||
+            {!rideExpired && (
+              <button
+                onClick={submitBooking}
+                disabled={
+                  !bookingForm.passengerName ||
+                  !bookingForm.passengerPhone ||
+                  (selectedRide.availableSeatsRemaining ||
+                    selectedRide.availableSeats -
+                      (selectedRide.bookedSeats || 0)) <= 0
+                }
+                className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                {(selectedRide.availableSeatsRemaining ||
                   selectedRide.availableSeats -
                     (selectedRide.bookedSeats || 0)) <= 0
-              }
-              className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-            >
-              {(selectedRide.availableSeatsRemaining ||
-                selectedRide.availableSeats -
-                  (selectedRide.bookedSeats || 0)) <= 0
-                ? "No Seats Available"
-                : "Send Booking Request"}
-            </button>
+                  ? "No Seats Available"
+                  : "Send Booking Request"}
+              </button>
+            )}
           </div>
         </div>
       </div>

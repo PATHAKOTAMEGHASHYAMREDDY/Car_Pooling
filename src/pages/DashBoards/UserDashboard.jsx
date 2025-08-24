@@ -30,6 +30,8 @@ const UserDashboard = () => {
     date: "",
   });
 
+  const [showExpiredRides, setShowExpiredRides] = useState(false);
+
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
@@ -67,20 +69,20 @@ const UserDashboard = () => {
         phone: currentUser.phone || '',
         gender: currentUser.gender || ''
       });
-      await loadDashboardData();
+      await loadDashboardData(showExpiredRides);
       setInitialLoading(false);
     };
 
     initializeDashboard();
   }, [navigate]);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (includeExpired = false) => {
     try {
       setLoading(true);
 
       // Load both data sets in parallel for better performance
       const [ridesResponse, bookingsResponse] = await Promise.all([
-        ridesAPI.getActiveRides(),
+        includeExpired ? ridesAPI.getAllRides() : ridesAPI.getActiveRides(),
         bookingsAPI.getMyBookings(),
       ]);
 
@@ -202,8 +204,12 @@ const UserDashboard = () => {
 
       console.log("Searching with params:", searchParams);
 
-      const rides = await ridesAPI.searchRides(searchParams);
-      console.log("Search results:", rides);
+      // Use search if there are search parameters, otherwise load all rides
+      const hasSearchParams = searchParams.source || searchParams.destination || searchParams.rideDate;
+      const rides = hasSearchParams 
+        ? await ridesAPI.searchRides(searchParams)
+        : (showExpiredRides ? await ridesAPI.getAllRides() : await ridesAPI.getActiveRides());
+      
       setAvailableRides(rides || []);
 
       if (!rides || rides.length === 0) {
@@ -216,8 +222,8 @@ const UserDashboard = () => {
 
       // Fallback: try to load all active rides if search fails
       try {
-        console.log("Search failed, loading all active rides as fallback...");
-        const allRides = await ridesAPI.getActiveRides();
+        console.log("Search failed, loading all rides as fallback...");
+        const allRides = showExpiredRides ? await ridesAPI.getAllRides() : await ridesAPI.getActiveRides();
         setAvailableRides(allRides || []);
         showNotification("Search failed, showing all available rides", "info");
       } catch (fallbackError) {
@@ -229,7 +235,79 @@ const UserDashboard = () => {
     }
   };
 
+  // Check if ride date and time have passed
+  const isRideExpired = (rideDate, rideTime) => {
+    if (!rideDate || !rideTime) return false;
+    
+    const now = new Date();
+    let rideDateTime;
+    
+    // Handle different date formats
+    if (typeof rideDate === 'string') {
+      // If it's in DD/MM format, assume current year
+      if (rideDate.match(/^\d{1,2}\/\d{1,2}$/)) {
+        const [day, month] = rideDate.split('/');
+        rideDateTime = new Date(now.getFullYear(), parseInt(month) - 1, parseInt(day));
+      } else {
+        rideDateTime = new Date(rideDate);
+      }
+    } else {
+      rideDateTime = new Date(rideDate);
+    }
+    
+    // Add the time to the date
+    if (rideTime) {
+      const [hours, minutes] = rideTime.split(':');
+      rideDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    
+    return rideDateTime < now;
+  };
+
+  // Get time until ride or time since completion
+  const getRideTimeStatus = (rideDate, rideTime) => {
+    if (!rideDate || !rideTime) return "";
+    
+    const now = new Date();
+    let rideDateTime = new Date(rideDate);
+    const [hours, minutes] = rideTime.split(':');
+    rideDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const diffMs = rideDateTime - now;
+    const diffHours = Math.abs(diffMs) / (1000 * 60 * 60);
+    
+    if (diffMs > 0) {
+      // Future ride
+      if (diffHours < 1) {
+        const diffMinutes = Math.floor(Math.abs(diffMs) / (1000 * 60));
+        return `Starts in ${diffMinutes} minutes`;
+      } else if (diffHours < 24) {
+        return `Starts in ${Math.floor(diffHours)} hours`;
+      } else {
+        const diffDays = Math.floor(diffHours / 24);
+        return `Starts in ${diffDays} day${diffDays > 1 ? 's' : ''}`;
+      }
+    } else {
+      // Past ride
+      if (diffHours < 1) {
+        const diffMinutes = Math.floor(diffHours * 60);
+        return `Completed ${diffMinutes} minutes ago`;
+      } else if (diffHours < 24) {
+        return `Completed ${Math.floor(diffHours)} hours ago`;
+      } else {
+        const diffDays = Math.floor(diffHours / 24);
+        return `Completed ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      }
+    }
+  };
+
   const handleBookRide = (ride) => {
+    // Check if ride has expired
+    if (isRideExpired(ride.rideDate, ride.rideTime)) {
+      showNotification("This ride has already completed. You cannot book expired rides.", "error");
+      return;
+    }
+
     setSelectedRide(ride);
     setBookingForm({
       seatsBooked: 1,
@@ -621,22 +699,38 @@ const UserDashboard = () => {
 
                 {/* Available Rides */}
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <svg
-                      className="w-6 h-6 text-indigo-600 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                      />
-                    </svg>
-                    Available Rides ({availableRides.length})
-                  </h3>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                      <svg
+                        className="w-6 h-6 text-indigo-600 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                        />
+                      </svg>
+                      Available Rides ({availableRides.length})
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <label className="flex items-center space-x-2 text-sm text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={showExpiredRides}
+                          onChange={(e) => {
+                            setShowExpiredRides(e.target.checked);
+                            loadDashboardData(e.target.checked);
+                          }}
+                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span>Show completed rides</span>
+                      </label>
+                    </div>
+                  </div>
 
                   {loading ? (
                     <div className="flex justify-center items-center py-12">
@@ -664,7 +758,10 @@ const UserDashboard = () => {
                         No rides available
                       </h3>
                       <p className="mt-1 text-sm text-gray-500">
-                        Try adjusting your search criteria or check back later.
+                        {showExpiredRides 
+                          ? "No rides found in the system." 
+                          : "No active rides available. Try checking 'Show completed rides' or adjusting your search criteria."
+                        }
                       </p>
                     </div>
                   ) : (
@@ -672,29 +769,58 @@ const UserDashboard = () => {
                       {availableRides.map((ride, index) => (
                         <div
                           key={ride.id}
-                          className="ride-card p-6 animate-fadeIn"
+                          className={`ride-card p-6 animate-fadeIn ${
+                            isRideExpired(ride.rideDate, ride.rideTime) 
+                              ? "opacity-75 border-red-200 bg-red-50" 
+                              : ""
+                          }`}
                           style={{ animationDelay: `${index * 0.1}s` }}
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <div className="flex items-center space-x-4 mb-4">
-                                <div className="flex-shrink-0">
-                                  <div className="h-12 w-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                                    <span className="text-white font-semibold text-sm">
-                                      {ride.driverName
-                                        ?.split(" ")
-                                        .map((n) => n[0])
-                                        .join("") || "D"}
-                                    </span>
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center space-x-4">
+                                  <div className="flex-shrink-0">
+                                    <div className="h-12 w-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                                      <span className="text-white font-semibold text-sm">
+                                        {ride.driverName
+                                          ?.split(" ")
+                                          .map((n) => n[0])
+                                          .join("") || "D"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h4 className="text-xl font-semibold text-gray-900">
+                                      {ride.driverName || "Driver"}
+                                    </h4>
+                                    <p className="text-sm text-gray-600">
+                                      {ride.driverPhone || ""}
+                                    </p>
                                   </div>
                                 </div>
-                                <div>
-                                  <h4 className="text-xl font-semibold text-gray-900">
-                                    {ride.driverName || "Driver"}
-                                  </h4>
-                                  <p className="text-sm text-gray-600">
-                                    {ride.driverPhone || ""}
-                                  </p>
+                                <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${
+                                  isRideExpired(ride.rideDate, ride.rideTime)
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-green-100 text-green-700"
+                                }`}>
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d={isRideExpired(ride.rideDate, ride.rideTime)
+                                        ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        : "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      }
+                                    />
+                                  </svg>
+                                  <span>{getRideTimeStatus(ride.rideDate, ride.rideTime)}</span>
                                 </div>
                               </div>
 
@@ -900,28 +1026,47 @@ const UserDashboard = () => {
                             </div>
 
                             <div className="ml-6 flex-shrink-0">
-                              <button
-                                onClick={() => handleBookRide(ride)}
-                                disabled={
-                                  loading ||
-                                  (ride.availableSeatsRemaining ||
+                              {isRideExpired(ride.rideDate, ride.rideTime) ? (
+                                <div className="px-6 py-3 rounded-lg font-semibold bg-red-100 text-red-700 border border-red-200 flex items-center space-x-2">
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                  <span>Ride Completed</span>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => handleBookRide(ride)}
+                                  disabled={
+                                    loading ||
+                                    (ride.availableSeatsRemaining ||
+                                      ride.availableSeats -
+                                        (ride.bookedSeats || 0)) <= 0
+                                  }
+                                  className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                                    (ride.availableSeatsRemaining ||
+                                      ride.availableSeats -
+                                        (ride.bookedSeats || 0)) <= 0
+                                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                      : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 hover:shadow-lg transform hover:scale-105"
+                                  }`}
+                                >
+                                  {(ride.availableSeatsRemaining ||
                                     ride.availableSeats -
                                       (ride.bookedSeats || 0)) <= 0
-                                }
-                                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
-                                  (ride.availableSeatsRemaining ||
-                                    ride.availableSeats -
-                                      (ride.bookedSeats || 0)) <= 0
-                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                    : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 hover:shadow-lg transform hover:scale-105"
-                                }`}
-                              >
-                                {(ride.availableSeatsRemaining ||
-                                  ride.availableSeats -
-                                    (ride.bookedSeats || 0)) <= 0
-                                  ? "Full"
-                                  : "Book Ride"}
-                              </button>
+                                    ? "Full"
+                                    : "Book Ride"}
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
