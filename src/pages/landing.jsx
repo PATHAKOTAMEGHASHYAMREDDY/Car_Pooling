@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import carpoolAnimation from "../assets/carpool.json";
 import carpoolImage from "../assets/car-pool.jpg";
+import userDashboardImage from "../assets/userDashboard.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -90,12 +91,6 @@ const Landing = () => {
 
               {/* Action Buttons */}
               <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => navigate("/admin/login")}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 hover:scale-105 font-medium"
-                >
-                  Admin
-                </button>
               </div>
             </nav>
 
@@ -162,12 +157,6 @@ const Landing = () => {
 
                 {/* Mobile Action Buttons */}
                 <div className="pt-4 border-t border-gray-200 space-y-3">
-                  <button
-                    onClick={() => navigate("/admin/login")}
-                    className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 font-medium"
-                  >
-                    Admin
-                  </button>
                 </div>
               </div>
             </div>
@@ -233,18 +222,7 @@ const Landing = () => {
                 </button>
               </div>
 
-              {/* Admin Button */}
-              <div className="group">
-                <button
-                  onClick={() => navigate("/admin/login")}
-                  className="w-full sm:w-auto flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 group-hover:scale-105 transition-all duration-300"
-                >
-                  <div className="w-6 h-6 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                    🛡️
-                  </div>
-                  Admin
-                </button>
-              </div>
+
             </div>
           </div>
 
@@ -404,6 +382,94 @@ const Landing = () => {
           </div>
         </div>
       </main>
+
+      {/* User Dashboard Showcase Section */}
+      <section id="dashboard" className="bg-white py-16 mt-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-4">
+              Experience Our User Dashboard
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Discover how easy it is to find and book rides with our intuitive user interface. 
+              Search for rides, manage bookings, and track your journey all in one place.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Dashboard Image Container */}
+            <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-r from-indigo-50 to-purple-50 p-8">
+              <img
+                src={userDashboardImage}
+                alt="User Dashboard Interface"
+                className="w-full h-auto rounded-xl shadow-lg"
+              />
+
+              {/* Static Feature Highlights */}
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-700">Live Ride Search</span>
+                </div>
+              </div>
+
+              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-700">Easy Booking</span>
+                </div>
+              </div>
+
+              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-700">Real-time Updates</span>
+                </div>
+              </div>
+
+              <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-700">Secure Payments</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              <div className="text-center p-6 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl shadow-lg">
+                <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Smart Search</h3>
+                <p className="text-gray-600 text-sm">Find rides by location, date, and preferences with our intelligent search system.</p>
+              </div>
+
+              <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg">
+                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Easy Booking</h3>
+                <p className="text-gray-600 text-sm">Book your seat in just a few clicks with instant confirmation and notifications.</p>
+              </div>
+
+              <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg">
+                <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Track Progress</h3>
+                <p className="text-gray-600 text-sm">Monitor your bookings, ride history, and get real-time updates on your journeys.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* About Car Pooling Section */}
       <section
@@ -831,6 +897,14 @@ const Landing = () => {
                   Eco-Friendly Platform
                 </span>
               </div>
+              {/* Admin Access */}
+              <button
+                onClick={() => navigate("/admin/login")}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-50"
+                title="Admin Access"
+              >
+                🛡️ Admin
+              </button>
             </div>
           </div>
         </div>
