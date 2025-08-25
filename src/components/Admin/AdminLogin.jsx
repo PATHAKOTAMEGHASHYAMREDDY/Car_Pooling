@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Lottie from "lottie-react";
+import Notification from "../Notification";
 import carAdminAnimation from "../../assets/CarAdmin.json";
 
 const AdminLogin = () => {
@@ -12,6 +13,12 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [notification, setNotification] = useState(null);
+
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), type === 'error' ? 7000 : 5000);
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -48,8 +55,14 @@ const AdminLogin = () => {
         localStorage.setItem("adminToken", "admin-authenticated");
         localStorage.setItem("adminData", JSON.stringify(adminLoginData));
 
-        // Navigate to admin dashboard
-        navigate("/admin/dashboard");
+        // Show success notification
+        showNotification(`Welcome back, Admin! Login successful.`, 'success');
+        setError(""); // Clear any previous errors
+        
+        // Navigate to admin dashboard after a short delay
+        setTimeout(() => {
+          navigate("/admin/dashboard");
+        }, 1500);
       } else {
         setError("Invalid admin credentials");
       }
@@ -62,6 +75,7 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <Notification notification={notification} onClose={() => setNotification(null)} />
       <div className="max-w-6xl w-full">
         <div className="flex flex-col lg:flex-row items-center justify-start gap-6 pl-4">
           {/* Lottie Animation */}

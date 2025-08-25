@@ -22,6 +22,7 @@ const CarOwnerSignup = () => {
   const [notification, setNotification] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const showNotification = (message, type = 'info') => {
     setNotification({ message, type });
@@ -133,6 +134,8 @@ const CarOwnerSignup = () => {
       return;
     }
 
+    setLoading(true);
+
     try {
       const { authAPI, authUtils } = await import('../../services/api');
       
@@ -159,14 +162,21 @@ const CarOwnerSignup = () => {
           role: response.role
         });
         
-        // Redirect to car owner dashboard
-        navigate('/car-owner/dashboard');
+        // Show success notification
+        showNotification(`🎉 Welcome to RideShare, ${response.name}! Your car owner account has been created successfully.`, 'success');
+        
+        // Redirect to car owner dashboard after a short delay
+        setTimeout(() => {
+          navigate('/car-owner/dashboard');
+        }, 2000);
       } else {
         showNotification(response.message || 'Registration failed', 'error');
       }
     } catch (error) {
       console.error('Registration error:', error);
       showNotification(error.message || 'Registration failed. Please try again.', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -398,12 +408,22 @@ const CarOwnerSignup = () => {
             <div className="animate-slideIn" style={{animationDelay: '0.4s'}}>
               <button
                 type="submit"
-                className="btn-primary w-full flex items-center justify-center"
+                disabled={loading}
+                className="btn-primary w-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-                Create Car Owner Account
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Create Car Owner Account
+                  </>
+                )}
               </button>
             </div>
 

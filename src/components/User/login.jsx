@@ -12,6 +12,7 @@ const UserLogin = () => {
   });
   const [notification, setNotification] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const showNotification = (message, type = 'info') => {
     setNotification({ message, type });
@@ -27,6 +28,7 @@ const UserLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const { authAPI, authUtils } = await import('../../services/api');
@@ -56,14 +58,21 @@ const UserLogin = () => {
           role: response.role
         });
         
-        // Redirect to user dashboard
-        navigate('/user/dashboard');
+        // Show success notification
+        showNotification(`Welcome back, ${response.name}! Login successful.`, 'success');
+        
+        // Redirect to user dashboard after a short delay
+        setTimeout(() => {
+          navigate('/user/dashboard');
+        }, 1500);
       } else {
         showNotification(response.message || 'Login failed', 'error');
       }
     } catch (error) {
       console.error('Login error:', error);
       showNotification(error.message || 'Login failed. Please check your credentials.', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -180,13 +189,23 @@ const UserLogin = () => {
             <div className="animate-slideIn" style={{animationDelay: '0.3s'}}>
               <button
                 type="submit"
-                className="btn-primary w-full flex items-center justify-center"
+                disabled={loading}
+                className="btn-primary w-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{background: 'linear-gradient(to right, #2563eb, #4f46e5)'}}
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Find My Rides
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Signing In...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Find My Rides
+                  </>
+                )}
               </button>
             </div>
 
