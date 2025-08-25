@@ -405,29 +405,29 @@ const Landing = () => {
                 className="w-full h-auto rounded-xl shadow-lg"
               />
 
-              {/* Static Feature Highlights */}
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+              {/* Static Feature Highlights - Hidden on mobile, visible on desktop */}
+              <div className="hidden lg:block absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   <span className="text-sm font-medium text-gray-700">Live Ride Search</span>
                 </div>
               </div>
 
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+              <div className="hidden lg:block absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                   <span className="text-sm font-medium text-gray-700">Easy Booking</span>
                 </div>
               </div>
 
-              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+              <div className="hidden lg:block absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                   <span className="text-sm font-medium text-gray-700">Real-time Updates</span>
                 </div>
               </div>
 
-              <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+              <div className="hidden lg:block absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                   <span className="text-sm font-medium text-gray-700">Secure Payments</span>

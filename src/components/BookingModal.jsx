@@ -42,7 +42,7 @@ const BookingModal = ({
   const rideExpired = isRideExpired(selectedRide.rideDate, selectedRide.rideTime);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-gradient-to-br from-indigo-100/80 via-purple-100/80 to-blue-100/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto max-h-[95vh] overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
         {/* Modal Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">

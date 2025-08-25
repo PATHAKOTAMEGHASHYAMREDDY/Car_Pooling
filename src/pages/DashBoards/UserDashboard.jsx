@@ -1539,7 +1539,7 @@ const UserDashboard = () => {
 
       {/* Enhanced Booking Modal */}
       {showBookingModal && selectedRide && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-gradient-to-br from-indigo-100/80 via-purple-100/80 to-blue-100/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto max-h-[95vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-300">
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
