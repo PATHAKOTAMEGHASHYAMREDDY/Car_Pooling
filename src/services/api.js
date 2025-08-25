@@ -1,23 +1,23 @@
-const API_BASE_URL = 'http://localhost:8081/api';
+const API_BASE_URL = "http://localhost:8081/api";
 
 // Helper function to get auth token
 const getAuthToken = () => {
-  return localStorage.getItem('token');
+  return localStorage.getItem("token");
 };
 
 // Helper function to create headers
 const createHeaders = (includeAuth = true) => {
   const headers = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
-  
+
   if (includeAuth) {
     const token = getAuthToken();
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
   }
-  
+
   return headers;
 };
 
@@ -27,12 +27,12 @@ const handleResponse = async (response) => {
     const errorData = await response.text();
     throw new Error(errorData || `HTTP error! status: ${response.status}`);
   }
-  
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
+
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
     return await response.json();
   }
-  
+
   return await response.text();
 };
 
@@ -40,7 +40,7 @@ const handleResponse = async (response) => {
 export const authAPI = {
   register: async (userData) => {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
+      method: "POST",
       headers: createHeaders(false),
       body: JSON.stringify(userData),
     });
@@ -49,7 +49,7 @@ export const authAPI = {
 
   login: async (credentials) => {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
+      method: "POST",
       headers: createHeaders(false),
       body: JSON.stringify(credentials),
     });
@@ -61,7 +61,7 @@ export const authAPI = {
 export const ridesAPI = {
   createRide: async (rideData) => {
     const response = await fetch(`${API_BASE_URL}/rides`, {
-      method: 'POST',
+      method: "POST",
       headers: createHeaders(),
       body: JSON.stringify(rideData),
     });
@@ -70,7 +70,7 @@ export const ridesAPI = {
 
   getMyRides: async () => {
     const response = await fetch(`${API_BASE_URL}/rides/my-rides`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -78,31 +78,34 @@ export const ridesAPI = {
 
   searchRides: async (searchParams) => {
     const queryParams = new URLSearchParams();
-    
+
     // Only add parameters if they have actual values (not null, undefined, or empty string)
     if (searchParams.source && searchParams.source.trim()) {
-      queryParams.append('source', searchParams.source.trim());
+      queryParams.append("source", searchParams.source.trim());
     }
     if (searchParams.destination && searchParams.destination.trim()) {
-      queryParams.append('destination', searchParams.destination.trim());
+      queryParams.append("destination", searchParams.destination.trim());
     }
     if (searchParams.rideDate) {
-      queryParams.append('rideDate', searchParams.rideDate);
+      queryParams.append("rideDate", searchParams.rideDate);
     }
 
-    console.log('Search URL:', `${API_BASE_URL}/rides/search?${queryParams}`);
-    console.log('Search params:', searchParams);
+    console.log("Search URL:", `${API_BASE_URL}/rides/search?${queryParams}`);
+    console.log("Search params:", searchParams);
 
-    const response = await fetch(`${API_BASE_URL}/rides/search?${queryParams}`, {
-      method: 'GET',
-      headers: createHeaders(true),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/rides/search?${queryParams}`,
+      {
+        method: "GET",
+        headers: createHeaders(true),
+      }
+    );
     return handleResponse(response);
   },
 
   getActiveRides: async () => {
     const response = await fetch(`${API_BASE_URL}/rides/active`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(true),
     });
     return handleResponse(response);
@@ -110,7 +113,7 @@ export const ridesAPI = {
 
   getAllRides: async () => {
     const response = await fetch(`${API_BASE_URL}/rides/all`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(true),
     });
     return handleResponse(response);
@@ -118,7 +121,7 @@ export const ridesAPI = {
 
   getRideById: async (rideId) => {
     const response = await fetch(`${API_BASE_URL}/rides/${rideId}`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -126,7 +129,7 @@ export const ridesAPI = {
 
   updateRide: async (rideId, rideData) => {
     const response = await fetch(`${API_BASE_URL}/rides/${rideId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: createHeaders(),
       body: JSON.stringify(rideData),
     });
@@ -135,7 +138,7 @@ export const ridesAPI = {
 
   cancelRide: async (rideId) => {
     const response = await fetch(`${API_BASE_URL}/rides/${rideId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -146,7 +149,7 @@ export const ridesAPI = {
 export const bookingsAPI = {
   createBooking: async (bookingData) => {
     const response = await fetch(`${API_BASE_URL}/bookings`, {
-      method: 'POST',
+      method: "POST",
       headers: createHeaders(),
       body: JSON.stringify(bookingData),
     });
@@ -155,7 +158,7 @@ export const bookingsAPI = {
 
   getMyBookings: async () => {
     const response = await fetch(`${API_BASE_URL}/bookings/my-bookings`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -163,7 +166,7 @@ export const bookingsAPI = {
 
   getDriverBookings: async () => {
     const response = await fetch(`${API_BASE_URL}/bookings/driver-bookings`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -171,31 +174,37 @@ export const bookingsAPI = {
 
   getRideBookings: async (rideId) => {
     const response = await fetch(`${API_BASE_URL}/bookings/ride/${rideId}`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(),
     });
     return handleResponse(response);
   },
 
   approveBooking: async (bookingId) => {
-    const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/approve`, {
-      method: 'PUT',
-      headers: createHeaders(),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/bookings/${bookingId}/approve`,
+      {
+        method: "PUT",
+        headers: createHeaders(),
+      }
+    );
     return handleResponse(response);
   },
 
   rejectBooking: async (bookingId) => {
-    const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/reject`, {
-      method: 'PUT',
-      headers: createHeaders(),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/bookings/${bookingId}/reject`,
+      {
+        method: "PUT",
+        headers: createHeaders(),
+      }
+    );
     return handleResponse(response);
   },
 
   cancelBooking: async (bookingId) => {
     const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -206,7 +215,7 @@ export const bookingsAPI = {
 export const vehiclesAPI = {
   createOrUpdateVehicle: async (vehicleData) => {
     const response = await fetch(`${API_BASE_URL}/vehicles`, {
-      method: 'POST',
+      method: "POST",
       headers: createHeaders(),
       body: JSON.stringify(vehicleData),
     });
@@ -215,7 +224,7 @@ export const vehiclesAPI = {
 
   getMyVehicle: async () => {
     const response = await fetch(`${API_BASE_URL}/vehicles/my-vehicle`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -223,7 +232,7 @@ export const vehiclesAPI = {
 
   getVehicleById: async (vehicleId) => {
     const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -231,7 +240,7 @@ export const vehiclesAPI = {
 
   deleteVehicle: async (vehicleId) => {
     const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: createHeaders(),
     });
     return handleResponse(response);
@@ -241,28 +250,28 @@ export const vehiclesAPI = {
 // Auth helper functions
 export const authUtils = {
   setToken: (token) => {
-    localStorage.setItem('token', token);
+    localStorage.setItem("token", token);
   },
 
   getToken: () => {
-    return localStorage.getItem('token');
+    return localStorage.getItem("token");
   },
 
   removeToken: () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
   },
 
   setUser: (user) => {
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem("user", JSON.stringify(user));
   },
 
   getUser: () => {
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   },
 
   removeUser: () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem("user");
   },
 
   isAuthenticated: () => {
@@ -270,7 +279,7 @@ export const authUtils = {
   },
 
   logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   },
 };
